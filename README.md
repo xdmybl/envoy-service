@@ -5,3 +5,6 @@ envoy 二进制文件也不会加入到 git 中, 但是默认此项目中的 bin
 # how
 ## how to run 
 ./bin/envoy -c $yaml_path
+
+## how to build envoy
+文档在根目录 doc 下    
