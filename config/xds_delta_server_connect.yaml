@@ -1,0 +1,52 @@
+admin:
+  address:
+    # 管理后台地址设置, 默认设置为 9901
+    socket_address:
+      address: 127.0.0.1
+      port_value: 9901
+
+node:
+  # 必填 id cluster 来标识一个 envoy
+  id: gate-proxy
+  cluster: gate-proxy-cluster
+
+dynamic_resources:
+  # 动态资源设置, 这里是指 xDS Server 配置
+  ads_config:
+    api_type: DELTA_GRPC
+    transport_api_version: V3
+    grpc_services:
+      - envoy_grpc:
+          # 这个值必须对应 下面的 xds_cluster
+          cluster_name: xds_cluster
+    set_node_on_first_message_only: true
+  cds_config:
+    resource_api_version: V3
+    ads: {}
+  lds_config:
+    resource_api_version: V3
+    ads: {}
+
+static_resources:
+  # 静态资源配置
+  clusters:
+    - type: STATIC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      # 这个 name 必须是 xds_cluster
+      name: xds_cluster
+      connect_timeout: 1s
+      load_assignment:
+        # 这个 name 取什么名都可以, 这个名字可能被 eds_config_cluster 中的 service 所引用, 建议取有意义的名
+        cluster_name: xds_server
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    # xds server 地址
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 20520
